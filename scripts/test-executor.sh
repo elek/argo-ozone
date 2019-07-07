@@ -2,7 +2,10 @@
 set -x
 
 export LOG_DIR=${LOG_DIR:-/tmp/log}
+
+#The working directory
 BASE_DIR=${BASE_DIR:-/opt/src}
+mkdir -p "$BASE_DIR"
 
 if [ -z "$WORKFLOW_NAME" ]; then
    echo '$WORKFLOW_NAME should be set'
