@@ -1,0 +1,330 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: ozone-
+spec:
+  entrypoint: run-all-tests
+  arguments:
+    parameters:
+      - name: org
+        value: elek
+      - name: repo
+        value: hadoop
+      - name: revision
+        value: revision
+      - name: branch
+        value: checks2
+      - name: job
+        value: ozone-test
+  templates:
+    - name: run-all-tests
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: build
+            dependencies: ["checkout"]
+            template: build
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: checkstyle
+            dependencies: ["checkout"]
+            template: checkstyle
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: unit
+            dependencies: ["checkout"]
+            template: unit
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: integration
+            dependencies: ["checkout"]
+            template: integration
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: findbugs
+            dependencies: ["checkout"]
+            template: findbugs
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: acceptance
+            dependencies: ["checkout"]
+            template: acceptance
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-unit
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: unit
+            dependencies: ["checkout"]
+            template: unit
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-acceptance
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: acceptance
+            dependencies: ["checkout"]
+            template: acceptance
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: checkout
+      inputs:
+      outputs:
+        artifacts:
+          - name: source
+            path: /tmp/src
+          - name: log
+            path: /tmp/log
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args:
+          - bash
+          - -x
+          - -c
+          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project/hadoop-common/dev-support
+        env:
+          - name: TEST_TYPE
+            value: checkout
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+
+    - name: build
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      outputs:
+        artifacts:
+          - name: log
+            path: /tmp/log
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args:
+          - mvn
+          - clean
+          - install
+          - "-f"
+          - pom.ozone.xml
+          - "-DskipTests"
+        env:
+          - name: TEST_TYPE
+            value: build
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 2048Mi
+            cpu: 1
+
+    - name: unit
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args:
+          - bash
+          - "-x"
+          - "-c"
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; collect-junit.sh /opt/src /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/unit; exit $RET
+        env:
+          - name: TEST_TYPE
+            value: unit
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 10000Mi
+            cpu: 2
+
+    - name: integration
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args:
+          - bash
+          - "-x"
+          - "-c"
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/integration.sh; RET=$?; collect-junit.sh /opt/src /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/integration; exit $RET
+        env:
+          - name: TEST_TYPE
+            value: integration
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 10000Mi
+            cpu: 2
+
+    - name: checkstyle
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args: ["hadoop-ozone/dev-support/checks/checkstyle.sh"]
+        env:
+          - name: TEST_TYPE
+            value: checkstyle
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 2048Mi
+            cpu: 500m
+
+    - name: findbugs
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/test-executor.sh"]
+        args: ["hadoop-ozone/dev-support/checks/findbugs.sh"]
+        env:
+          - name: TEST_TYPE
+            value: findbugs
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 2048Mi
+            cpu: 500m
+
+    - name: acceptance
+      inputs:
+        artifacts:
+          - name: source
+            path: /opt/src
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+
+        args:
+          - bash
+          - "-x"
+          - "-c"
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-0.5.0-SNAPSHOT/compose/result /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/acceptance/smokeresult; exit $RET
+        command: ["/usr/local/bin/test-executor.sh"]
+        env:
+          - name: TEST_TYPE
+            value: acceptance
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: JOB_NAME
+            value: "{{workflow.parameters.job}}"
+          - name: GIT_REF
+            value: "{{workflow.parameters.revision}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+          - name: DOCKER_HOST
+            value: 127.0.0.1:2375
+        resources:
+          requests:
+            memory: 2024Mi
+            cpu: 2 
+      sidecars:
+        - name: dind
+          image: docker:17.10-dind # Docker already provides an image for running a Docker daemon
+          securityContext:
+            privileged: true # the Docker daemon can only run in a privileged container
+          # mirrorVolumeMounts will mount the same volumes specified in the main container
+          # to the sidecar (including artifacts), at the same mountPaths. This enables
+          # dind daemon to (partially) see the same filesystem as the main container in
+          # order to use features such as docker volume binding.
+          mirrorVolumeMounts: true
