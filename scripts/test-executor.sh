@@ -61,7 +61,7 @@ EOF
 
 git-setup-identity
 
-OUTPUT_DIR=$LOG_DIR/${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE
+export OUTPUT_DIR=$LOG_DIR/${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE
 mkdir -p $OUTPUT_DIR
 
 
