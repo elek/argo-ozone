@@ -3,6 +3,7 @@ kind: Workflow
 metadata:
   generateName: ozone-
 spec:
+  onExit: notify
   entrypoint: run-all-tests
   arguments:
     parameters:
@@ -13,9 +14,9 @@ spec:
       - name: revision
         value: revision
       - name: branch
-        value: checks2
-      - name: job
-        value: ozone-test
+        value: HDDS-1735
+      - name: notify
+        value: "false"
   templates:
     - name: run-all-tests
       dag:
@@ -76,6 +77,30 @@ spec:
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-checkstyle
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: checkstyle
+            dependencies: ["checkout"]
+            template: checkstyle
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-integration
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: integration
+            dependencies: ["checkout"]
+            template: integration
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
     - name: run-acceptance
       dag:
         tasks:
@@ -90,6 +115,12 @@ spec:
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
     - name: checkout
       inputs:
+        artifacts:
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       outputs:
         artifacts:
           - name: source
@@ -99,12 +130,12 @@ spec:
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args:
           - bash
           - -x
           - -c
-          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project/hadoop-common/dev-support
+          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project/hadoop-common/dev-support
         env:
           - name: TEST_TYPE
             value: checkout
@@ -112,8 +143,6 @@ spec:
             value: "{{workflow.name}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
@@ -124,7 +153,12 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       outputs:
         artifacts:
           - name: log
@@ -132,7 +166,7 @@ spec:
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args:
           - mvn
           - clean
@@ -147,8 +181,6 @@ spec:
             value: "{{workflow.name}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
@@ -163,16 +195,21 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args:
           - bash
           - "-x"
           - "-c"
-          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; collect-junit.sh /opt/src /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/unit; exit $RET
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /tmp/workdir $OUTPUT_DIR; exit $RET
         env:
           - name: TEST_TYPE
             value: unit
@@ -180,8 +217,6 @@ spec:
             value: "{{workflow.name}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
@@ -196,23 +231,26 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args:
           - bash
           - "-x"
           - "-c"
-          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/integration.sh; RET=$?; collect-junit.sh /opt/src /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/integration; exit $RET
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/integration.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /tmp/workdir $OUTPUT_DIR; exit $RET
         env:
           - name: TEST_TYPE
             value: integration
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
           - name: GITHUB_TOKEN
@@ -229,19 +267,22 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args: ["hadoop-ozone/dev-support/checks/checkstyle.sh"]
         env:
           - name: TEST_TYPE
             value: checkstyle
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
           - name: GITHUB_TOKEN
@@ -258,19 +299,22 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
-        command: ["/usr/local/bin/test-executor.sh"]
+        command: ["/tools/scripts/test-executor.sh"]
         args: ["hadoop-ozone/dev-support/checks/findbugs.sh"]
         env:
           - name: TEST_TYPE
             value: findbugs
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
           - name: GITHUB_TOKEN
@@ -287,7 +331,12 @@ spec:
       inputs:
         artifacts:
           - name: source
-            path: /opt/src
+            path: /tmp/workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
       container:
         image: elek/ozone-build:test
         imagePullPolicy: Always
@@ -296,15 +345,13 @@ spec:
           - bash
           - "-x"
           - "-c"
-          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-0.5.0-SNAPSHOT/compose/result /tmp/log/{{workflow.parameters.job}}/{{workflow.name}}/acceptance/smokeresult; exit $RET
-        command: ["/usr/local/bin/test-executor.sh"]
+          - mvn install -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-0.5.0-SNAPSHOT/compose/result $OUTPUT_DIR/smokeresult; exit $RET
+        command: ["/tools/scripts/test-executor.sh"]
         env:
           - name: TEST_TYPE
             value: acceptance
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
-          - name: JOB_NAME
-            value: "{{workflow.parameters.job}}"
           - name: GIT_REF
             value: "{{workflow.parameters.revision}}"
           - name: GITHUB_TOKEN
@@ -317,7 +364,7 @@ spec:
         resources:
           requests:
             memory: 2024Mi
-            cpu: 2 
+            cpu: 2
       sidecars:
         - name: dind
           image: docker:17.10-dind # Docker already provides an image for running a Docker daemon
@@ -328,3 +375,43 @@ spec:
           # dind daemon to (partially) see the same filesystem as the main container in
           # order to use features such as docker volume binding.
           mirrorVolumeMounts: true
+    - name: notify
+      inputs:
+        artifacts:
+          - name: report-source
+            path: /src
+            git:
+              repo: "https://github.com/elek/ozone-ci.git"
+              revision: "master"
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
+      script:
+        image: elek/mailsender-go
+        imagePullPolicy: Always
+        command: ["bash", "-x"]
+        source: |
+          if [[ "$NOTIFY" == "true" ]]; then
+            JOB_NAME=$(cut -d '-' -f 1 <<< "$WORKFLOW_NAME")
+            /tools/scripts/report.sh /src/$JOB_NAME/$WORKFLOW_NAME | tee /tmp/mail.txt
+            /go/bin/mailsend-go -sub "[ozone-$JOB_NAME] Build $WORKFLOW_NAME is $WORKFLOW_STATUS" \
+              -smtp os.anzix.net \
+              -port 465 \
+              auth -user ci@anzix.net -from ci@anzix.net \
+              -to level2@anzix.net \
+              body -file /tmp/mail.txt
+          fi
+        env:
+          - name: SMTP_USER_PASS
+            valueFrom:
+              secretKeyRef:
+                name: smtp-pass
+                key: secret
+          - name: WORKFLOW_STATUS
+            value: "{{workflow.status}}"
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: NOTIFY
+            value: "{{workflow.parameters.notify}}"
