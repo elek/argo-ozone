@@ -3,25 +3,27 @@ DIR=${1:-$PWD}
 INSTANCE=$(basename "$DIR")
 JOB=$(basename $(dirname "$DIR"))
 
-show_results(){
-for test in $(grep -l -r --include="result" $1 $DIR); do
+show_results() {
+   echo "-------------------------------"
+   echo "The following tests are $2:"
+   echo "-------------------------------"
+   echo ""
+   for test in $(grep -l -r --include="result" $1 $DIR); do
 
-    TEST="$(basename $(dirname "$test"))"
+      TEST="$(basename $(dirname "$test"))"
 
-   printf "[$TEST] $TEST check is $2\n\n"
-   printf "   see: https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/$(basename $TEST)/output.log\n\n\n"
+      printf "[$TEST] $TEST check is $2\n\n"
+      printf "   see: https://raw.githubusercontent.com/elek/ozone-ci/master/$JOB/$INSTANCE/$(basename $TEST)/output.log\n\n\n"
 
-done
+      
 
-
+   done
+   echo ""
 }
-echo "[OZONE] Ozone build is FAILED"
 
-echo ""
-echo "The following tests are FAILED:"
-echo ""
+show_results failure FAILED
 
-show_results failure failed
-show_results success
+show_results success PASSED
+
 echo ""
 echo "NOTE: this is an experimental build by Marton Elek, after the stabilization it can be moved to the builds.apache.org. Ping me with any questions/comments."
