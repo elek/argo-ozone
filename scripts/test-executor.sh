@@ -72,7 +72,7 @@ cd $BASE_DIR
 send_status pending
 set -o pipefail
 
-"$@" | tee $OUTPUT_DIR/output.log
+"$@" 2>&1 | tee $OUTPUT_DIR/output.log
 
 RESULT=$?
 
