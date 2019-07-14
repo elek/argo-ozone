@@ -60,7 +60,7 @@ send_status() {
     "context": "ci/$TEST_TYPE"
   }
 EOF
-
+    cat /tmp/data.json
     curl --data @/tmp/data.json -v -u elek:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L https://api.github.com/repos/elek/hadoop/statuses/$GIT_REF
   fi
 }
