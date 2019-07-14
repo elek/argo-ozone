@@ -47,7 +47,6 @@ git-commit-result() {
 }
 
 send_status() {
-  echo $1
   if [ "$UPDATE_GITHUB_STATUS" == "true" ]; then
     GIT_REF=$(head -n1 $LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/HEAD.txt | awk '{print $2}')
     cat <<EOF >/tmp/data.json
@@ -59,7 +58,7 @@ send_status() {
   }
 EOF
     cat /tmp/data.json
-    curl --data @/tmp/data.json -v -u elek:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L https://api.github.com/repos/elek/hadoop/statuses/$GIT_REF
+    curl --data @/tmp/data.json -v -u elek:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L https://api.github.com/repos/apache/hadoop/statuses/$GIT_REF
   fi
 }
 
