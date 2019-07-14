@@ -51,8 +51,6 @@ send_status() {
   if [ "$UPDATE_GITHUB_STATUS" == "true" ]; then
     GIT_REF=$(head -n1 $LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/HEAD.txt | awk '{print $2}')
     cat <<EOF >/tmp/data.json
-
-  cat /tmp/data.json
   {
     "state": "$1",
     "target_url": "https://github.com/elek/ozone-ci/tree/master/$JOB_NAME/$WORKFLOW_NAME/$TEST_TYPE",
