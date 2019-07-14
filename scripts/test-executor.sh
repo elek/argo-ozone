@@ -49,7 +49,7 @@ git-commit-result() {
 send_status() {
   echo $1
   if [ "$UPDATE_GITHUB_STATUS" ]; then
-    GIT_REF=$(head -n1 $LOG_DIR/HEAD.txt | awk '{print $2}')
+    GIT_REF=$(head -n1 $LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/HEAD.txt | awk '{print $2}')
     cat <<EOF >/tmp/data.json
 
     # cat /tmp/data.json
