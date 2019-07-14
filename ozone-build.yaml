@@ -209,7 +209,7 @@ spec:
           - bash
           - "-x"
           - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /tmp/workdir $OUTPUT_DIR; exit $RET
+          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /workdir $OUTPUT_DIR; exit $RET
         env:
           - name: TEST_TYPE
             value: unit
@@ -245,7 +245,7 @@ spec:
           - bash
           - "-x"
           - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/integration.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /tmp/workdir $OUTPUT_DIR; exit $RET
+          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/integration.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /workdir $OUTPUT_DIR; exit $RET
         env:
           - name: TEST_TYPE
             value: integration
