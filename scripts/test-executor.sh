@@ -4,7 +4,7 @@ set -x
 export LOG_DIR=${LOG_DIR:-/tmp/log}
 
 #The working directory
-BASE_DIR=${BASE_DIR:-/tmp/workdir}
+BASE_DIR=${BASE_DIR:-/workdir}
 mkdir -p "$BASE_DIR"
 
 if [ -z "$WORKFLOW_NAME" ]; then
