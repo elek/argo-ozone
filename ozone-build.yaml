@@ -158,7 +158,7 @@ spec:
             path: /tools
             git:
               repo: "https://github.com/elek/argo-ozone.git"
-              revision: "-master"
+              revision: "master"
       outputs:
         artifacts:
           - name: log
