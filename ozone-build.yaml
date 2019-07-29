@@ -58,6 +58,13 @@ spec:
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: author
+            dependencies: ["checkout"]
+            template: author
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: acceptance
             dependencies: ["checkout"]
             template: acceptance
@@ -77,6 +84,18 @@ spec:
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-author
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: author
+            dependencies: ["checkout"]
+            template: author
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"  
     - name: run-checkstyle
       dag:
         tasks:
@@ -294,7 +313,33 @@ spec:
           requests:
             memory: 2048Mi
             cpu: 500m
-
+    - name: author
+      inputs:
+        artifacts:
+          - name: source
+            path: /workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/tools/scripts/test-executor.sh"]
+        args: ["hadoop-ozone/dev-support/checks/author.sh"]
+        env:
+          - name: TEST_TYPE
+            value: author
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: UPDATE_GITHUB_STATUS
+            value: "{{workflow.parameters.update-github-status}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
     - name: findbugs
       inputs:
         artifacts:
