@@ -1,0 +1,21 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: trunk-nightly
+spec:
+  schedule: "30 */2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: schedule
+            image: elek/ozone-schedule
+            args:
+              - argo
+              - submit
+              - -p
+              - notify=true
+              - /tmp/ozone-build.yaml
+              - --generate-name=trunk-nightly-
