@@ -444,7 +444,7 @@ spec:
               -smtp os.anzix.net \
               -port 465 \
               auth -user ci@anzix.net -from ci@anzix.net \
-              -to level2@anzix.net \
+              -to ozone-dev@cloudera.com \
               body -file /tmp/mail.txt
           fi
         env:
