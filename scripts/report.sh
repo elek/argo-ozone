@@ -27,7 +27,7 @@ show_results() {
          for TEST_RESULT_FILE in $(find $DIR/$TEST -name "*.txt" | grep -v output); do
 
             FAILURES=$(cat $TEST_RESULT_FILE | grep FAILURE | grep "Tests run" | awk '{print $18}' | sort | uniq)
-      
+
             for FAILURE in $FAILURES; do
                printf "      $FAILURE\n"
                TEST_RESULT_LOCATION=$(realpath --relative-to=$DIR $TEST_RESULT_FILE)
@@ -45,5 +45,13 @@ show_results failure FAILED
 
 show_results success PASSED
 
-echo ""
-echo "NOTE: this is an experimental build by Marton Elek, after the stabilization it can be moved to the builds.apache.org. Ping me with any questions/comments."
+cat << EOF
+
+>>> Please check the following github repository for all the details:
+
+https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/
+
+----
+NOTE: this is an experimental build by Marton Elek, after the stabilization it can be moved to the builds.apache.org. Ping him if you have any questions/comments.
+The source of the build definitions can be found at https://github.com/elek/argo-ozone especially in https://github.com/elek/argo-ozone/blob/master/ozone-build.yaml.
+EOF
