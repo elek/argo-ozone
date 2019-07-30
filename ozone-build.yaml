@@ -389,7 +389,7 @@ spec:
           - bash
           - "-x"
           - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-0.5.0-SNAPSHOT/compose/result $OUTPUT_DIR/smokeresult; exit $RET
+          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-*/compose/result $OUTPUT_DIR/smokeresult; exit $RET
         command: ["/tools/scripts/test-executor.sh"]
         env:
           - name: TEST_TYPE
