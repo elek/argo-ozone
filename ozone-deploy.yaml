@@ -98,7 +98,7 @@ spec:
           - install
           - "-f"
           - pom.ozone.xml
-          - "-Ddocker.image=elek/ozone:asd"
+          - "-Ddocker.image=elek/ozone:20190811-registry-2"
           - "-Pdocker-build"
           - "-DskipTests"
         env:

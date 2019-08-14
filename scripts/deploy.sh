@@ -20,5 +20,4 @@ sudo chmod +x /usr/local/bin/flekszible
 
 cd /workdir/examples/ozone-dev/
 flekszible generate --namespace $NAMESPACE
-kubectl apply -f
-sleep 100000
+kubectl apply -f .
