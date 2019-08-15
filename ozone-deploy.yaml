@@ -36,6 +36,8 @@ spec:
               artifacts:
                 - name: kubernetes
                   from: "{{tasks.build.outputs.artifacts.kubernetes}}"
+          - name: deploy
+            template: deploy
     - name: checkout
       inputs:
         artifacts:
@@ -98,8 +100,8 @@ spec:
           - install
           - "-f"
           - pom.ozone.xml
-          - "-Ddocker.image=elek/ozone:20190811-registry-2"
-          - "-Pdocker-build"
+          - "-Ddocker.image=172.26.32.224:31500/ozone:{{workflow.name}}"
+          - "-Pdocker-build,docker-push"
           - "-DskipTests"
         env:
           - name: TEST_TYPE
@@ -127,6 +129,8 @@ spec:
           # dind daemon to (partially) see the same filesystem as the main container in
           # order to use features such as docker volume binding.
           mirrorVolumeMounts: true
+          args:
+            - --insecure-registry=172.26.32.224:31500
     - name: deploy
       inputs:
         artifacts:
@@ -163,5 +167,40 @@ spec:
           requests:
             memory: 2048Mi
             cpu: 1
+    - name: freon
+      inputs:
+        artifacts:
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
+      outputs:
+        artifacts:
+          - name: log
+            path: /tmp/log
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        command: ["/tools/scripts/test-executor.sh"]
+        args:
+           - /tools/scripts/freon.sh
+        env:
+          - name: TEST_TYPE
+            value: build
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: UPDATE_GITHUB_STATUS
+            value: "{{workflow.parameters.update-github-status}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+        resources:
+          requests:
+            memory: 2048Mi
+            cpu: 1
 
+ 
  
