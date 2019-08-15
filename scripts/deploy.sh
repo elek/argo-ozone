@@ -21,3 +21,4 @@ sudo chmod +x /usr/local/bin/flekszible
 cd /workdir/examples/ozone-dev/
 flekszible generate --namespace $NAMESPACE
 kubectl apply -f .
+sleep 300 #wait for the startup

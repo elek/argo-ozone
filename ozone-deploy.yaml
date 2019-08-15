@@ -36,8 +36,9 @@ spec:
               artifacts:
                 - name: kubernetes
                   from: "{{tasks.build.outputs.artifacts.kubernetes}}"
-          - name: deploy
-            template: deploy
+          - name: freon
+            template: freon
+            dependencies: ["deploy"]
     - name: checkout
       inputs:
         artifacts:
