@@ -154,7 +154,7 @@ spec:
            - /tools/scripts/deploy.sh
         env:
           - name: TEST_TYPE
-            value: build
+            value: deploy
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
@@ -188,7 +188,7 @@ spec:
            - /tools/scripts/freon.sh
         env:
           - name: TEST_TYPE
-            value: build
+            value: freon
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
