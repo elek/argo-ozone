@@ -1,0 +1,19 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: trunk-performance-nightly
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: schedule
+            image: elek/ozone-schedule
+            args:
+              - argo
+              - submit
+              - /tmp/ozone-deploy.yaml
+              - --generate-name=performance-nightly-
