@@ -1,0 +1,55 @@
+github:
+  org: apache
+  repo: hadoop
+
+contributors:
+  user:
+    - aajisaka
+    - adoroszlai
+    - ajayydv
+    - anuengineer
+    - arp7
+    - avijayanhwx
+    - bharatviswa504
+    - bshashikant
+    - chenjunjiedada
+    - ChenSammi
+    - dineshchitlangia
+    - elek
+    - fapifta
+    - hanishakoneru
+    - hgadre
+    - iamcaoxudong
+    - kittinanasi
+    - lokeshj1703
+    - mukul1987
+    - nandakumar131
+    - pingsutw
+    - shwetayakkali
+    - smengcl
+    - sodonnel
+    - supratimdeka
+    - swagle
+    - timmylicheng
+    - vivekratnavel
+    - xiaoyuyao
+
+source:
+  githubpr:
+    label: ozone
+
+persistence:
+  type: dir
+  path: /cache
+
+actions:
+  #  print:
+  #    type: stdout
+  build:
+    command: argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=false --generate-name=pr-{{.ref | tolower }}- /tmp/ozone-build.yaml
+    dryrun: false
+    rerun: true
+    label: ozone
+  label:
+    type: label
+

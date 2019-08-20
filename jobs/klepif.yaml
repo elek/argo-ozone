@@ -1,0 +1,36 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: klepif
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+           labels:
+              component: klepif
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: schedule
+            imagePullPolicy: Always
+            image: elek/ozone-klepif
+            args:
+              - klepif
+              - check
+            env:
+            - name: KLEPIF_GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-token
+                  key: secret
+            volumeMounts:
+            - name: cache
+              mountPath: /cache
+          volumes:
+          - name: cache
+            persistentVolumeClaim:
+               claimName: ozone-klepif
+
