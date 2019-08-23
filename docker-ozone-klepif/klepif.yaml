@@ -46,9 +46,8 @@ actions:
   #  print:
   #    type: stdout
   build:
-    command: argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=false --generate-name=pr-{{.ref | tolower }}- /tmp/ozone-build.yaml
+    command: argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=true --generate-name=pr-{{.ref | tolower }}- /tmp/ozone-build.yaml
     dryrun: false
-    rerun: true
     label: ozone
   label:
     type: label
