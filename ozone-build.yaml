@@ -132,6 +132,18 @@ spec:
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
+    - name: run-blockade
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: blockade
+            dependencies: ["checkout"]
+            template: blockade
+            arguments:
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
     - name: checkout
       inputs:
         artifacts:
@@ -394,6 +406,53 @@ spec:
         env:
           - name: TEST_TYPE
             value: acceptance
+          - name: WORKFLOW_NAME
+            value: "{{workflow.name}}"
+          - name: UPDATE_GITHUB_STATUS
+            value: "{{workflow.parameters.update-github-status}}"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: secret
+          - name: DOCKER_HOST
+            value: 127.0.0.1:2375
+        resources:
+          requests:
+            memory: 2024Mi
+            cpu: 2
+      sidecars:
+        - name: dind
+          image: docker:17.10-dind # Docker already provides an image for running a Docker daemon
+          securityContext:
+            privileged: true # the Docker daemon can only run in a privileged container
+          # mirrorVolumeMounts will mount the same volumes specified in the main container
+          # to the sidecar (including artifacts), at the same mountPaths. This enables
+          # dind daemon to (partially) see the same filesystem as the main container in
+          # order to use features such as docker volume binding.
+          mirrorVolumeMounts: true
+    - name: blockade
+      inputs:
+        artifacts:
+          - name: source
+            path: /workdir
+          - name: tools-source
+            path: /tools
+            git:
+              repo: "https://github.com/elek/argo-ozone.git"
+              revision: "master"
+      container:
+        image: elek/ozone-build:test
+        imagePullPolicy: Always
+        args:
+          - bash
+          - "-x"
+          - "-c"
+          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/blockade.sh; RET=$?; exit $RET
+        command: ["/tools/scripts/test-executor.sh"]
+        env:
+          - name: TEST_TYPE
+            value: blockade
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
