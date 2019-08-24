@@ -38,6 +38,13 @@ fi
 
 set -o pipefail
 
+#workaround to seamlessly upgrade to newer acceptance.sh
+if [ "$TEST_TYPE" == "acceptance" ]; then
+   if [ ! -d "$BASE_DIR/hadoop-ozone/dist/target" ]; then
+       "$BASE_DIR/hadoop-ozone/dev-support/checks/build.sh" | tee "$OUTPUT_DIR/output.log"
+   fi
+fi
+
 "$@" 2>&1 | tee $OUTPUT_DIR/output.log
 
 RESULT=$?
