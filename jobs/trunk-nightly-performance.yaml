@@ -13,7 +13,12 @@ spec:
           - name: schedule
             image: elek/ozone-schedule
             args:
-              - argo
-              - submit
-              - /tmp/ozone-deploy.yaml
-              - --generate-name=performance-nightly-
+              - argo submit /git/argo-ozone/ozone-deploy.yaml --generate-name=performance-nightly-$(date '+%Y%m%d')-
+            volumeMounts:
+            - mountPath: /git
+              name: build-def
+          volumes:
+          - name: build-def
+            gitRepo:
+              repository: "https://github.com/elek/argo-ozone.git"
+              revision: "master"

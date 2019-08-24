@@ -16,11 +16,13 @@ spec:
           containers:
           - name: schedule
             imagePullPolicy: Always
-            image: elek/ozone-klepif
+            image: elek/ozone-schedule
             args:
               - klepif
               - check
             env:
+            - name: KLEPIF_CONFIG_DIR
+              value: /git/argo-ozone
             - name: KLEPIF_GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -29,8 +31,13 @@ spec:
             volumeMounts:
             - name: cache
               mountPath: /cache
+            - mountPath: /git
+              name: build-def
           volumes:
           - name: cache
             persistentVolumeClaim:
                claimName: ozone-klepif
-
+          - name: build-def
+            gitRepo:
+              repository: "https://github.com/elek/argo-ozone.git"
+              revision: "master"

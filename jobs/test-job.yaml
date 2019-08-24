@@ -1,11 +1,8 @@
-apiVersion: batch/v1beta1
-kind: CronJob
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: byscane-nightly
+  name: job-test
 spec:
-  schedule: "0 3 * * *"
-  jobTemplate:
-    spec:
       template:
         spec:
           restartPolicy: Never
@@ -15,7 +12,7 @@ spec:
             args:
               - bash
               - -c
-              - argo submit -p notify=true -p branch=ozone-0.4.1 /git/argo-ozone/ozone-build.yaml --generate-name=byscane-nightly-$(date '+%Y%m%d')-
+              - argo submit -p notify=false -p org=elek -p branch=check-report /git/argo-ozone/ozone-build.yaml --generate-name=dev-check-$(date '+%Y%m%d')- --entrypoint=run-checkstyle
             volumeMounts:
             - mountPath: /git
               name: build-def
