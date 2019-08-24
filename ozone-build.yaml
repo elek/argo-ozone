@@ -4,7 +4,7 @@ metadata:
   generateName: ozone-
 spec:
   onExit: notify
-  entrypoint: run-all-tests
+  entrypoint: run-all
   arguments:
     parameters:
       - name: org
@@ -17,149 +17,110 @@ spec:
         value: "false"
       - name: update-github-status
         value: "false"
+      - name: argo-ozone-branch
+        value: "master"
+  volumes:
+    - name: git
+      secret:
+        secretName: git
   templates:
-    - name: run-all-tests
+    - name: run-all
       dag:
         tasks:
           - name: checkout
             template: checkout
           - name: build
             dependencies: ["checkout"]
-            template: build
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: build            
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: checkstyle
             dependencies: ["checkout"]
-            template: checkstyle
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: checkstyle
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: unit
             dependencies: ["checkout"]
-            template: unit
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: unit
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: integration
             dependencies: ["checkout"]
-            template: integration
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: integration
+              artifacts:
+                - name: source
+                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          - name: author
+            dependencies: ["checkout"]
+            template: execute-step
+            arguments:
+              parameters:
+                - name: identifier
+                  value: author
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: findbugs
             dependencies: ["checkout"]
-            template: findbugs
+            template: execute-step
             arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: author
-            dependencies: ["checkout"]
-            template: author
-            arguments:
+              parameters:
+                - name: identifier
+                  value: findbugs
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: rat
             dependencies: ["checkout"]
-            template: rat
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: rat
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: acceptance
             dependencies: ["checkout"]
-            template: acceptance
+            template: execute-step
             arguments:
+              parameters:
+                - name: identifier
+                  value: acceptance
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-unit
+    - name: run-findbugs
       dag:
         tasks:
           - name: checkout
             template: checkout
-          - name: unit
+          - name: findbugs
             dependencies: ["checkout"]
-            template: unit
+            template: execute-step
             arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-author
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: author
-            dependencies: ["checkout"]
-            template: author
-            arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"  
-    - name: run-checkstyle
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: checkstyle
-            dependencies: ["checkout"]
-            template: checkstyle
-            arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-rat
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: rat
-            dependencies: ["checkout"]
-            template: rat
-            arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-integration
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: integration
-            dependencies: ["checkout"]
-            template: integration
-            arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-acceptance
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: acceptance
-            dependencies: ["checkout"]
-            template: acceptance
-            arguments:
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-blockade
-      dag:
-        tasks:
-          - name: checkout
-            template: checkout
-          - name: blockade
-            dependencies: ["checkout"]
-            template: blockade
-            arguments:
+              parameters:
+                - name: identifier
+                  value: findbugs            
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -170,7 +131,7 @@ spec:
             path: /tools
             git:
               repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
+              revision: "{{workflow.parameters.argo-ozone-branch}}"
       outputs:
         artifacts:
           - name: source
@@ -198,9 +159,18 @@ spec:
               secretKeyRef:
                 name: github-token
                 key: secret
+        volumeMounts:
+          - name: git
+            mountPath: /home/user/.gitconfig
+            subPath: .gitconfig
+          - name: git
+            mountPath: /home/user/.git-credentials
+            subPath: .git-credentials
 
-    - name: build
+    - name: execute-step
       inputs:
+        parameters:
+          - name: identifier
         artifacts:
           - name: source
             path: /workdir
@@ -208,7 +178,7 @@ spec:
             path: /tools
             git:
               repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
+              revision: "{{workflow.parameters.argo-ozone-branch}}"
       outputs:
         artifacts:
           - name: log
@@ -218,15 +188,10 @@ spec:
         imagePullPolicy: Always
         command: ["/tools/scripts/test-executor.sh"]
         args:
-          - mvn
-          - clean
-          - install
-          - "-f"
-          - pom.ozone.xml
-          - "-DskipTests"
+          - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
         env:
           - name: TEST_TYPE
-            value: build
+            value: "{{inputs.parameters.identifier}}"
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
@@ -238,282 +203,15 @@ spec:
                 key: secret
         resources:
           requests:
-            memory: 2048Mi
-            cpu: 1
-
-    - name: unit
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args:
-          - bash
-          - "-x"
-          - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/unit.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /workdir $OUTPUT_DIR; exit $RET
-        env:
-          - name: TEST_TYPE
-            value: unit
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-        resources:
-          requests:
-            memory: 10000Mi
+            memory: 4000Mi
             cpu: 2
-
-    - name: integration
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args:
-          - bash
-          - "-x"
-          - "-c"
-          - hadoop-ozone/dev-support/checks/integration.sh; RET=$?; /tools/scripts/collect-junit-failed.sh /workdir $OUTPUT_DIR; exit $RET
-        env:
-          - name: TEST_TYPE
-            value: integration
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-        resources:
-          requests:
-            memory: 10000Mi
-            cpu: 2
-
-    - name: checkstyle
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args: ["hadoop-ozone/dev-support/checks/checkstyle.sh"]
-        env:
-          - name: TEST_TYPE
-            value: checkstyle
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-        resources:
-          requests:
-            memory: 2048Mi
-            cpu: 500m
-    - name: author
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args: ["hadoop-ozone/dev-support/checks/author.sh"]
-        env:
-          - name: TEST_TYPE
-            value: author
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-    - name: rat
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args: ["hadoop-ozone/dev-support/checks/rat.sh"]
-        env:
-          - name: TEST_TYPE
-            value: rat
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-    - name: findbugs
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        command: ["/tools/scripts/test-executor.sh"]
-        args: ["hadoop-ozone/dev-support/checks/findbugs.sh"]
-        env:
-          - name: TEST_TYPE
-            value: findbugs
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-        resources:
-          requests:
-            memory: 2048Mi
-            cpu: 500m
-
-    - name: acceptance
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        args:
-          - bash
-          - "-x"
-          - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/acceptance.sh; RET=$?; cp -r hadoop-ozone/dist/target/ozone-*/compose/result $OUTPUT_DIR/smokeresult; exit $RET
-        command: ["/tools/scripts/test-executor.sh"]
-        env:
-          - name: TEST_TYPE
-            value: acceptance
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-          - name: DOCKER_HOST
-            value: 127.0.0.1:2375
-        resources:
-          requests:
-            memory: 2024Mi
-            cpu: 2
-      sidecars:
-        - name: dind
-          image: docker:17.10-dind # Docker already provides an image for running a Docker daemon
-          securityContext:
-            privileged: true # the Docker daemon can only run in a privileged container
-          # mirrorVolumeMounts will mount the same volumes specified in the main container
-          # to the sidecar (including artifacts), at the same mountPaths. This enables
-          # dind daemon to (partially) see the same filesystem as the main container in
-          # order to use features such as docker volume binding.
-          mirrorVolumeMounts: true
-    - name: blockade
-      inputs:
-        artifacts:
-          - name: source
-            path: /workdir
-          - name: tools-source
-            path: /tools
-            git:
-              repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
-      container:
-        image: elek/ozone-build:test
-        imagePullPolicy: Always
-        args:
-          - bash
-          - "-x"
-          - "-c"
-          - mvn install -B -f pom.ozone.xml -DskipTests; hadoop-ozone/dev-support/checks/blockade.sh; RET=$?; exit $RET
-        command: ["/tools/scripts/test-executor.sh"]
-        env:
-          - name: TEST_TYPE
-            value: blockade
-          - name: WORKFLOW_NAME
-            value: "{{workflow.name}}"
-          - name: UPDATE_GITHUB_STATUS
-            value: "{{workflow.parameters.update-github-status}}"
-          - name: GITHUB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github-token
-                key: secret
-          - name: DOCKER_HOST
-            value: 127.0.0.1:2375
-        resources:
-          requests:
-            memory: 2024Mi
-            cpu: 2
+        volumeMounts:
+          - name: git
+            mountPath: /home/user/.gitconfig
+            subPath: .gitconfig
+          - name: git
+            mountPath: /home/user/.git-credentials
+            subPath: .git-credentials
       sidecars:
         - name: dind
           image: docker:17.10-dind # Docker already provides an image for running a Docker daemon
@@ -536,7 +234,7 @@ spec:
             path: /tools
             git:
               repo: "https://github.com/elek/argo-ozone.git"
-              revision: "master"
+              revision: "{{workflow.parameters.argo-ozone-branch}}"
       script:
         image: elek/mailsender-go
         imagePullPolicy: Always
