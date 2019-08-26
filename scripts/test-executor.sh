@@ -38,6 +38,12 @@ fi
 
 set -o pipefail
 
+# Apply optional patch if defined
+if [ "$APPLY_PATCH" ]; then
+    curl -s "$APPLY_PATCH" | git apply - | tee "$OUTPUT_DIR/output.log"
+    git status |  tee "$OUTPUT_DIR/output.log"
+fi
+
 #workaround to seamlessly upgrade to newer acceptance.sh
 if [ "$TEST_TYPE" == "acceptance" ]; then
    if [ ! -d "$BASE_DIR/hadoop-ozone/dist/target" ]; then
