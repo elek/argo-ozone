@@ -40,6 +40,7 @@ set -o pipefail
 
 # Apply optional patch if defined
 if [ "$APPLY_PATCH" ]; then
+    echo "Applying tempporary fix patch: $APPLY_PATCH"
     curl -s "$APPLY_PATCH" | git apply - | tee -a "$OUTPUT_DIR/output.log"
     git status |  tee -a "$OUTPUT_DIR/output.log"
 fi
