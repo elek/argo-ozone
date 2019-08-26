@@ -22,13 +22,17 @@ send_status() {
   GIT_REF=$(head -n1 $TEST_REPORT_DIR/../HEAD.txt | awk '{print $2}')
   TEST_NAME=$(basename $TEST_REPORT_DIR)
 
-  SUMMARY_FILE=""
-  if [ -f "$TEST_REPORT_DIR/summary.html" ]; then
-     SUMMARY_FILE="summary.html"
-  elif [ -f "$TEST_REPORT_DIR/summary.md" ]; then
-     SUMMARY_FILE="summary.md"
-  elif [ -f "$TEST_REPORT_DIR/summary.txt" ]; then
-     SUMMARY_FILE="summary.txt"
+  GITHUB_SOURCE_URL="https://github.com/elek/ozone-ci/tree/master/$TEST_LOCATION"
+  GITHUB_PAGE_URL="https://elek.github.io/ozone-ci/$TEST_LOCATION"
+
+  TARGET_URL="$GITHUB_SOURCE_URL"
+
+  if [ -s "$TEST_REPORT_DIR/summary.html" ]; then
+     TARGET_URL="$GITHUB_PAGE_URL/summary.html"
+  elif [ -s "$TEST_REPORT_DIR/summary.md" ]; then
+     TARGET_URL="$GITHUB_SOURCE_URL/summary.md"
+  elif [ -s "$TEST_REPORT_DIR/summary.txt" ]; then
+     TARGET_URL="$GITHUB_SOURCE_URL/summary.txt"
   fi
 
   if [ ! -f "$TEST_REPORT_DIR/output.log" ]; then
@@ -51,7 +55,7 @@ send_status() {
   cat <<EOF >/tmp/data.json
 {
   "state": "$STATUS",
-  "target_url": "https://github.com/elek/ozone-ci/tree/master/$TEST_LOCATION/$SUMMARY_FILE",
+  "target_url": "$TARGET_URL",
   "description": "$MESSAGE",
   "context": "ci/$TEST_NAME"
 }
