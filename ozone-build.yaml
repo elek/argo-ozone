@@ -19,6 +19,10 @@ spec:
         value: "false"
       - name: argo-ozone-branch
         value: "master"
+      - name: build-image
+        value: elek/ozone-build:test
+      - name: selected-test #works only together with setting entrypoint to run-ona
+        value: all
   volumes:
     - name: git
       secret:
@@ -35,7 +39,7 @@ spec:
             arguments:
               parameters:
                 - name: identifier
-                  value: build            
+                  value: build
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -109,18 +113,18 @@ spec:
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
-    - name: run-findbugs
+    - name: run-one
       dag:
         tasks:
           - name: checkout
             template: checkout
-          - name: findbugs
+          - name: run-test
             dependencies: ["checkout"]
             template: execute-step
             arguments:
               parameters:
                 - name: identifier
-                  value: findbugs            
+                  value: "{{workflow.parameters.selected-test}}"
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -139,7 +143,7 @@ spec:
           - name: log
             path: /tmp/log
       container:
-        image: elek/ozone-build:test
+        image: "{{workflow.parameters.build-image}}"
         imagePullPolicy: Always
         command: ["/tools/scripts/test-executor.sh"]
         args:
@@ -184,7 +188,7 @@ spec:
           - name: log
             path: /tmp/log
       container:
-        image: elek/ozone-build:test
+        image: "{{workflow.parameters.build-image}}"
         imagePullPolicy: Always
         command: ["/tools/scripts/test-executor.sh"]
         args:
@@ -238,19 +242,27 @@ spec:
               repo: "https://github.com/elek/argo-ozone.git"
               revision: "{{workflow.parameters.argo-ozone-branch}}"
       script:
-        image: elek/mailsender-go
+        image: "{{workflow.parameters.build-image}}"
         imagePullPolicy: Always
         command: ["bash", "-x"]
         source: |
+
+          export LOG_DIR=/tmp/log
+          git clone https://github.com/elek/ozone-ci.git "$LOG_DIR"
+
+          JOB_NAME=$(cut -d '-' -f 1 <<< "$WORKFLOW_NAME")
+          /tools/scripts/report.sh $LOG_DIR/$JOB_NAME/$WORKFLOW_NAME | tee "$LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/README.md"
+
+          source /tools/scripts/test-executor-lib.sh
+          git_commit_result
+
           if [[ "$NOTIFY" == "true" ]]; then
-            JOB_NAME=$(cut -d '-' -f 1 <<< "$WORKFLOW_NAME")
-            /tools/scripts/report.sh /src/$JOB_NAME/$WORKFLOW_NAME | tee /tmp/mail.txt
-            /go/bin/mailsend-go -sub "[ozone-$JOB_NAME] Build $WORKFLOW_NAME is $WORKFLOW_STATUS" \
+            mailsend-go -sub "[ozone-$JOB_NAME] Build $WORKFLOW_NAME is $WORKFLOW_STATUS" \
               -smtp os.anzix.net \
               -port 465 \
               auth -user ci@anzix.net -from ci@anzix.net \
               -to ozone-dev@cloudera.com \
-              body -file /tmp/mail.txt
+              body -file "$LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/README.md"
           fi
         env:
           - name: SMTP_USER_PASS
@@ -264,3 +276,10 @@ spec:
             value: "{{workflow.name}}"
           - name: NOTIFY
             value: "{{workflow.parameters.notify}}"
+        volumeMounts:
+          - name: git
+            mountPath: /home/user/.gitconfig
+            subPath: .gitconfig
+          - name: git
+            mountPath: /home/user/.git-credentials
+            subPath: .git-credentials
