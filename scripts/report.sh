@@ -4,54 +4,62 @@ INSTANCE=$(basename "$DIR")
 JOB=$(basename $(dirname "$DIR"))
 
 cd $DIR
-
 show_results() {
-   echo "-------------------------------"
-   echo "The following tests are $2:"
-   echo "-------------------------------"
+   echo "# Tests with $1 status"
    echo ""
    for test in $(grep -l -r --include="result" $1 $DIR); do
-
       TEST="$(basename $(dirname "$test"))"
-      printf "[$TEST] $TEST check is $2\n\n"
-      printf "   output: https://raw.githubusercontent.com/elek/ozone-ci/master/$JOB/$INSTANCE/$TEST/output.log\n\n\n"
+      RELATIVE_PATH="$JOB/$INSTANCE/$TEST"
 
-      if [ "$TEST" == "acceptance" ]; then
+      echo "## $TEST check is finished with $1 status"
+      echo ""
+      echo "   * [output](https://raw.githubusercontent.com/elek/ozone-ci/master/$RELATIVE_PATH/output.log)"
 
-         printf "   robot results: https://elek.github.io/ozone-ci/$JOB/$INSTANCE/acceptance/smokeresult/log.html\n\n\n"
+      echo "   * [all collected results](https://github.com/elek/ozone-ci/tree/master/$RELATIVE_PATH)"
 
-      elif [ "$TEST" == "unit" ] || [ "$TEST" == "integration" ]; then
+      GITHUB_SOURCE_URL="https://github.com/elek/ozone-ci/tree/master/$RELATIVE_PATH"
+      GITHUB_PAGE_URL="https://elek.github.io/ozone-ci/$RELATIVE_PATH"
 
-         printf "   Failing tests: \n\n"
-
-         for TEST_RESULT_FILE in $(find $DIR/$TEST -name "*.txt" | grep -v output); do
-
-            FAILURES=$(cat $TEST_RESULT_FILE | grep FAILURE | grep "Tests run" | awk '{print $18}' | sort | uniq)
-
-            for FAILURE in $FAILURES; do
-               printf "      $FAILURE\n"
-               TEST_RESULT_LOCATION=$(realpath --relative-to=$DIR $TEST_RESULT_FILE)
-               printf "            https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/$TEST_RESULT_LOCATION\n\n"
-            done
-
-         done
-         printf "\n\n"
+      if [ -s "$(dirname "$test")/summary.html" ]; then
+         echo "   * [summary.html]($GITHUB_PAGE_URL/summary.html)"
       fi
+
+      if [ -s "$(dirname "$test")/summary.md" ]; then
+         echo "   * [summary.md]($GITHUB_SOURCE_URL/summary.md)"
+      fi
+
+      if [ -s "$(dirname "$test")/summary.txt" ]; then
+         echo "   * [summary.txt]($GITHUB_SOURCE_URL/summary.txt)"
+      fi
+
+      echo ""
+
+      if [ -s "$(dirname "$test")/summary.md" ]; then
+         cat "$(dirname "$test")/summary.md"
+      elif [ -s "$(dirname "$test")/summary.txt" ]; then
+         cat "$(dirname "$test")/summary.txt"
+      fi
+
+      echo ""
+
    done
    echo ""
 }
 
-show_results failure FAILED
+show_results failure
 
-show_results success PASSED
+show_results success
 
 cat << EOF
 
->>> Please check the following github repository for all the details:
+# References
 
-https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/
+ * All the results are saved to [here](https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/)
+ * The definition is the build is committed to [here](https://github.com/elek/argo-ozone)
+    * The build is defined in [this argo workflow XML](https://github.com/elek/argo-ozone/blob/master/ozone-build.yaml)
+    * This report is assembled by the [report script](https://github.com/elek/argo-ozone/blob/master/scripts/report.sh)
 
-----
-NOTE: this is an experimental build by Marton Elek, after the stabilization it can be moved to the builds.apache.org. Ping him if you have any questions/comments.
-The source of the build definitions can be found at https://github.com/elek/argo-ozone especially in https://github.com/elek/argo-ozone/blob/master/ozone-build.yaml.
+This is an experimental build and eventually can be merged to the Apache Hadoop Ozone source tree (after some testing).
+
+In case of any question please contact with elek dot apache dot org.
 EOF
