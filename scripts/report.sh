@@ -35,7 +35,8 @@ show_results() {
       echo ""
 
       if [ -s "$(dirname "$test")/summary.md" ]; then
-         cat "$(dirname "$test")/summary.md"
+         cat "$(dirname "$test")/summary.md" \
+           | perl -wpl -e "s@\]\((?\!\w+://|/)@$&${TEST}/@g" # adjust relative links
       elif [ -s "$(dirname "$test")/summary.txt" ]; then
          cat "$(dirname "$test")/summary.txt"
       fi
