@@ -177,7 +177,7 @@ spec:
           - name: identifier
         artifacts:
           - name: source
-            path: /workdir
+            path: /tmp/workdir
           - name: tools-source
             path: /tools
             git:
@@ -192,7 +192,7 @@ spec:
         imagePullPolicy: Always
         command: ["/tools/scripts/test-executor.sh"]
         args:
-          - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
+          - /tmp/workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
         env:
           - name: TEST_TYPE
             value: "{{inputs.parameters.identifier}}"

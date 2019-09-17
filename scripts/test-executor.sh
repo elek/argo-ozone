@@ -8,7 +8,7 @@ git clone https://github.com/elek/ozone-ci.git "$LOG_DIR"
 
 
 #The working directory
-BASE_DIR=${BASE_DIR:-/workdir}
+BASE_DIR=${BASE_DIR:-/tmp/workdir}
 mkdir -p "$BASE_DIR"
 
 if [ -z "$WORKFLOW_NAME" ]; then
