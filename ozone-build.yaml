@@ -258,18 +258,13 @@ spec:
 
           if [[ "$NOTIFY" == "true" ]]; then
             mailsend-go -sub "[ozone-$JOB_NAME] Build $WORKFLOW_NAME is $WORKFLOW_STATUS" \
-              -smtp os.anzix.net \
-              -port 465 \
-              auth -user ci@anzix.net -from ci@anzix.net \
+              -smtp smtp.l42scl.hortonworks.com \
+              -port 25 \
+              -from no_reply@cloudera.com \
               -to ozone-dev@cloudera.com \
               body -file "$LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/README.md"
           fi
         env:
-          - name: SMTP_USER_PASS
-            valueFrom:
-              secretKeyRef:
-                name: smtp-pass
-                key: secret
           - name: WORKFLOW_STATUS
             value: "{{workflow.status}}"
           - name: WORKFLOW_NAME
