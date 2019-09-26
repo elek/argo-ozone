@@ -20,7 +20,7 @@ spec:
       - name: argo-ozone-branch
         value: "master"
       - name: build-image
-        value: elek/ozone-build:20190825-1
+        value: elek/ozone-build:20190925-1
       - name: selected-test #works only together with setting entrypoint to run-ona
         value: all
   volumes:
