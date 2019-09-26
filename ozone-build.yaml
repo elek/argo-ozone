@@ -202,8 +202,8 @@ spec:
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
             value: "{{workflow.parameters.update-github-status}}"
-#          - name: APPLY_PATCH
-#            value: https://github.com/elek/hadoop/commit/e8b2cd7a87f8bf42ced0ab459870be5ba880ea17.patch?short_path=cbc3fc8#diff-cbc3fc862e413c87f6e53b751a43e33d
+          - name: APPLY_PATCH
+            value: https://github.com/elek/hadoop/commit/e8b2cd7a87f8bf42ced0ab459870be5ba880ea17.patch?short_path=cbc3fc8#diff-cbc3fc862e413c87f6e53b751a43e33d
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
