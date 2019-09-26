@@ -17,13 +17,15 @@ git_commit_result() {
 send_status() {
   LOG_DIR="$1"
   TEST_LOCATION="$2"
-
+  BUILD_ARTIFACT_REPO="$3"
+  SOURCE_TREE_REPO="$4"
   TEST_REPORT_DIR="$LOG_DIR/$TEST_LOCATION"
   GIT_REF=$(head -n1 $TEST_REPORT_DIR/../HEAD.txt | awk '{print $2}')
   TEST_NAME=$(basename $TEST_REPORT_DIR)
 
-  GITHUB_SOURCE_URL="https://github.com/elek/ozone-ci/tree/master/$TEST_LOCATION"
-  GITHUB_PAGE_URL="https://elek.github.io/ozone-ci/$TEST_LOCATION"
+  GITHUB_SOURCE_URL="$BUILD_ARTIFACT_REPO/tree/master/$TEST_LOCATION"
+  BUILD_ARTIFACT_REPO_PAGE=$(echo $BUILD_ARTIFACT_REPO | sed 's/\/\/github.com//g' | sed -E 's/https:\/([^\/]+)/https:\/\/\1.github.io/g')
+  GITHUB_PAGE_URL="$BUILD_ARTIFACT_REPO_PAGE/$TEST_LOCATION"
 
   TARGET_URL="$GITHUB_SOURCE_URL"
 
@@ -61,7 +63,7 @@ send_status() {
 }
 EOF
   cat /tmp/data.json
-  curl --data @/tmp/data.json -v -u $GITHUB_SUSER:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L https://api.github.com/repos/${GIT_ORG:-apache}/hadoop/statuses/$GIT_REF
+  curl --data @/tmp/data.json -v -u $GITHUB_SUSER:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L $(echo $SOURCE_TREE_REPO | sed 's/github.com/api.github.com/repos/g')/statuses/$GIT_REF
 
 }
 

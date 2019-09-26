@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -x
 
+SOURCE_TREE_REPO=${SOURCE_TREE_REPO:-https://github.com/apache/hadoop}
+BUILD_ARTIFACT_REPO=${BUILD_ARTIFACT_REPO:-https://github.com/elek/ozone-ci-q4}
 #Directory to store the output artifacts
 export LOG_DIR=${LOG_DIR:-/tmp/log}
 
-git clone https://github.com/elek/ozone-ci.git "$LOG_DIR"
+git --depth=1 clone $BUILD_ARTIFACT_REPO.git "$LOG_DIR"
 
 
 #The working directory
@@ -33,14 +35,14 @@ cd $BASE_DIR
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/test-executor-lib.sh"
 
 if [ "$UPDATE_GITHUB_STATUS" == "true" ]; then
-  send_status $LOG_DIR "${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE"
+  send_status $LOG_DIR "${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE" $BUILD_ARTIFACT_REPO $SOURCE_TREE_REPO
 fi
 
 set -o pipefail
 
 # Apply optional patch if defined
 if [ "$APPLY_PATCH" ]; then
-    echo "Applying tempporary fix patch: $APPLY_PATCH"
+    echo "Applying temporary fix patch: $APPLY_PATCH"
     curl -s "$APPLY_PATCH" | git apply - | tee -a "$OUTPUT_DIR/output.log"
 fi
 
@@ -64,6 +66,6 @@ fi
 git_commit_result
 
 if [ "$UPDATE_GITHUB_STATUS" == "true" ]; then
-  send_status $LOG_DIR "${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE"
+  send_status $LOG_DIR "${JOB_NAME:-results}/$WORKFLOW_NAME/$TEST_TYPE" $BUILD_ARTIFACT_REPO $SOURCE_TREE_REPO
 fi
 exit $RESULT
