@@ -6,7 +6,7 @@ BUILD_ARTIFACT_REPO=${BUILD_ARTIFACT_REPO:-https://github.com/elek/ozone-ci-q4}
 #Directory to store the output artifacts
 export LOG_DIR=${LOG_DIR:-/tmp/log}
 
-git --depth=1 clone $BUILD_ARTIFACT_REPO.git "$LOG_DIR"
+git clone --depth=1 $BUILD_ARTIFACT_REPO.git "$LOG_DIR"
 
 
 #The working directory
