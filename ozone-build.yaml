@@ -194,6 +194,8 @@ spec:
         args:
           - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
         env:
+          - name: DOCKER_HOST
+            value: tcp://0.0.0.0:2375
           - name: TEST_TYPE
             value: "{{inputs.parameters.identifier}}"
           - name: WORKFLOW_NAME
@@ -201,7 +203,7 @@ spec:
           - name: UPDATE_GITHUB_STATUS
             value: "{{workflow.parameters.update-github-status}}"
 #          - name: APPLY_PATCH
-#            value: https://patch-diff.githubusercontent.com/raw/apache/hadoop/pull/1348.diff
+#            value: https://github.com/elek/hadoop/commit/e8b2cd7a87f8bf42ced0ab459870be5ba880ea17.patch?short_path=cbc3fc8#diff-cbc3fc862e413c87f6e53b751a43e33d
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
