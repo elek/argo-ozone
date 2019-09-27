@@ -63,7 +63,7 @@ send_status() {
 }
 EOF
   cat /tmp/data.json
-  curl --data @/tmp/data.json -v -u $GITHUB_SUSER:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L $(echo $SOURCE_TREE_REPO | sed 's/github.com/api.github.com/repos/g')/statuses/$GIT_REF
+  curl --data @/tmp/data.json -v -u $GITHUB_SUSER:$GITHUB_TOKEN -H "Accept: application/vnd.github.antiope-preview+json" -L $(echo $SOURCE_TREE_REPO | sed 's/github.com/api.github.com\/repos/g')/statuses/$GIT_REF
 
 }
 
