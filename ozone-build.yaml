@@ -19,6 +19,8 @@ spec:
         value: "false"
       - name: argo-ozone-branch
         value: "master"
+      - name: artifact-repo
+        value: https://github.com/elek/ozone-ci-q4
       - name: build-image
         value: elek/ozone-build:20190925-1
       - name: selected-test #works only together with setting entrypoint to run-ona
@@ -158,6 +160,8 @@ spec:
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
             value: "false"
+          - name: BUILD_ARTIFACT_REPO
+            value: "{{workflow.parameters.artifact-repo}}"
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
@@ -202,6 +206,8 @@ spec:
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS
             value: "{{workflow.parameters.update-github-status}}"
+          - name: BUILD_ARTIFACT_REPO
+            value: "{{workflow.parameters.artifact-repo}}"
 #          - name: APPLY_PATCH
 #            value: https://github.com/elek/hadoop/commit/e8b2cd7a87f8bf42ced0ab459870be5ba880ea17.patch?short_path=cbc3fc8#diff-cbc3fc862e413c87f6e53b751a43e33d
           - name: GITHUB_TOKEN
@@ -236,7 +242,7 @@ spec:
           - name: report-source
             path: /src
             git:
-              repo: "https://github.com/elek/ozone-ci.git"
+              repo: "{{workflow.parameters.artifact-repo}}"
               revision: "master"
           - name: tools-source
             path: /tools
@@ -250,7 +256,7 @@ spec:
         source: |
 
           export LOG_DIR=/tmp/log
-          git clone https://github.com/elek/ozone-ci.git "$LOG_DIR"
+          git clone "$BUILD_ARTIFACT_REPO" "$LOG_DIR"
 
           JOB_NAME=$(cut -d '-' -f 1 <<< "$WORKFLOW_NAME")
           /tools/scripts/report.sh $LOG_DIR/$JOB_NAME/$WORKFLOW_NAME | tee "$LOG_DIR/$JOB_NAME/$WORKFLOW_NAME/README.md"
@@ -271,6 +277,8 @@ spec:
             value: "{{workflow.status}}"
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
+          - name: BUILD_ARTIFACT_REPO
+            value: "{{workflow.parameters.artifact-repo}}"
           - name: NOTIFY
             value: "{{workflow.parameters.notify}}"
         volumeMounts:

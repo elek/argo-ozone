@@ -2,6 +2,7 @@
 DIR=${1:-$PWD}
 INSTANCE=$(basename "$DIR")
 JOB=$(basename $(dirname "$DIR"))
+BUILD_ARTIFACT_REPO=${BUILD_ARTIFACT_REPO:-https://github.com/elek/ozone-ci-q4}
 
 cd $DIR
 show_results() {
@@ -13,12 +14,12 @@ show_results() {
 
       echo "## $TEST check is finished with $1 status"
       echo ""
-      echo "   * [output](https://raw.githubusercontent.com/elek/ozone-ci/master/$RELATIVE_PATH/output.log)"
+      echo "   * [output]($(echo $BUILD_ARTIFACT_REPO | sed 's/github.com/raw.githubusercontent.com/g')/master/$RELATIVE_PATH/output.log)"
 
-      echo "   * [all collected results](https://github.com/elek/ozone-ci/tree/master/$RELATIVE_PATH)"
+      echo "   * [all collected results]($BUILD_ARTIFACT_REPO/tree/master/$RELATIVE_PATH)"
 
-      GITHUB_SOURCE_URL="https://github.com/elek/ozone-ci/tree/master/$RELATIVE_PATH"
-      GITHUB_PAGE_URL="https://elek.github.io/ozone-ci/$RELATIVE_PATH"
+      GITHUB_SOURCE_URL="$BUILD_ARTIFACT_REPO/tree/master/$RELATIVE_PATH"
+      GITHUB_PAGE_URL="$(echo $BUILD_ARTIFACT_REPO | sed 's/\/\/github.com//g' | sed -E 's/https:\/([^\/]+)/https:\/\/\1.github.io/g')/$RELATIVE_PATH"
 
       if [ -s "$(dirname "$test")/summary.html" ]; then
          echo "   * [summary.html]($GITHUB_PAGE_URL/summary.html)"
@@ -54,7 +55,7 @@ cat << EOF
 
 # References
 
- * All the results are saved to [here](https://github.com/elek/ozone-ci/tree/master/$JOB/$INSTANCE/)
+ * All the results are saved to [here]($BUILD_ARTIFACT_REPO/tree/master/$JOB/$INSTANCE/)
  * The definition is the build is committed to [here](https://github.com/elek/argo-ozone)
     * The build is defined in [this argo workflow XML](https://github.com/elek/argo-ozone/blob/master/ozone-build.yaml)
     * This report is assembled by the [report script](https://github.com/elek/argo-ozone/blob/master/scripts/report.sh)
