@@ -40,8 +40,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: build
+                - name: test
+                  value: build.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -50,8 +50,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: checkstyle
+                - name: test
+                  value: checkstyle.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -60,8 +60,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: unit
+                - name: test
+                  value: unit.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -70,8 +70,10 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: integration
+                - name: test
+                  value: integration.sh
+                - name: arg1
+                  value: -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -80,8 +82,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: author
+                - name: test
+                  value: author.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -90,8 +92,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: findbugs
+                - name: test
+                  value: findbugs.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -100,8 +102,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: rat
+                - name: test
+                  value: rat.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -110,8 +112,8 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
-                  value: acceptance
+                - name: test
+                  value: acceptance.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -125,7 +127,7 @@ spec:
             template: execute-step
             arguments:
               parameters:
-                - name: identifier
+                - name: test
                   value: "{{workflow.parameters.selected-test}}"
               artifacts:
                 - name: source
@@ -152,7 +154,7 @@ spec:
           - bash
           - -x
           - -c
-          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project/hadoop-common/dev-support
+          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project /tmp/src/hadoop-hdfs-project hadoop-dist hadoop-project-dist hadoop-project hadoop-cloud-storage-project hadoop-build-tools
         env:
           - name: TEST_TYPE
             value: checkout
@@ -178,7 +180,9 @@ spec:
     - name: execute-step
       inputs:
         parameters:
-          - name: identifier
+          - name: test
+          - name: arg1
+            default: ""
         artifacts:
           - name: source
             path: /workdir
@@ -196,12 +200,11 @@ spec:
         imagePullPolicy: Always
         command: ["/tools/scripts/test-executor.sh"]
         args:
-          - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
+          - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.test}}
+          - "{{inputs.parameters.arg1}}"
         env:
           - name: DOCKER_HOST
             value: tcp://0.0.0.0:2375
-          - name: TEST_TYPE
-            value: "{{inputs.parameters.identifier}}"
           - name: WORKFLOW_NAME
             value: "{{workflow.name}}"
           - name: UPDATE_GITHUB_STATUS

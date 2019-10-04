@@ -8,10 +8,15 @@ export BASE_DIR="$TMP_DIR/workdir"
 export LOG_DIR="$TMP_DIR/log"
 export REPO_DIR="$TMP_DIR/repo"
 export TEST_TYPE="demo"
-
 mkdir -p $BASE_DIR
 mkdir -p $LOG_DIR
 mkdir -p $REPO_DIR
+cat << EOF > $BASE_DIR/integration.sh
+#!/usr/bin/env bash
+echo "abrakadabra"
+echo "$@"
+EOF
+chmod +x $BASE_DIR/integration.sh
 
 cd $REPO_DIR && git init --bare
 
