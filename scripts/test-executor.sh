@@ -57,7 +57,8 @@ if [ "$TEST_TYPE" == "acceptance" ]; then
    fi
 fi
 
-"$@" 2>&1 | tee $OUTPUT_DIR/output.log
+IFS=' ' read -r -a RUN_COMMAND <<< "$@"
+"$RUN_COMMAND" 2>&1 | tee $OUTPUT_DIR/output.log
 
 RESULT=$?
 
