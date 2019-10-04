@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -x
 
+#Name of the test (eg. unit)
+TEST_TYPE=$(basename $1)
+TEST_TYPE=${TEST_TYPE%.*} #without extension
+
 SOURCE_TREE_REPO=${SOURCE_TREE_REPO:-https://github.com/apache/hadoop}
 BUILD_ARTIFACT_REPO=${BUILD_ARTIFACT_REPO:-https://github.com/elek/ozone-ci-q4}
 #Directory to store the output artifacts

@@ -1,0 +1,7 @@
+**/TestOzoneFsHAURLs.java
+**/Test2WayCommitInRatis.java
+**/TestWatchForCommit.java
+**/TestCommitWatcher.java
+**/TestBlockDeletion.java
+**/TestCloseContainerByPipeline.java
+**/TestContainerStateMachineFailures.java
