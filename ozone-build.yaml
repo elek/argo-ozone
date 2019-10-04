@@ -61,7 +61,7 @@ spec:
             arguments:
               parameters:
                 - name: test
-                  value: unit.sh -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
+                  value: unit.sh
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -71,7 +71,7 @@ spec:
             arguments:
               parameters:
                 - name: test
-                  value: integration.sh
+                  value: integration.sh -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
