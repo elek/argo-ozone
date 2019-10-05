@@ -1,3 +1,4 @@
+**/OzoneClientRetriesOnException.java
 **/TestOzoneFsHAURLs.java
 **/Test2WayCommitInRatis.java
 **/TestWatchForCommit.java
