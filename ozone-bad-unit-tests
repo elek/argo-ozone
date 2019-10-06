@@ -1,4 +1,5 @@
-**/OzoneClientRetriesOnException.java
+**/TestQueryNode.java
+**/TestBlockOutputStreamWithFailures.java
 **/TestOzoneFsHAURLs.java
 **/Test2WayCommitInRatis.java
 **/TestWatchForCommit.java
@@ -6,3 +7,4 @@
 **/TestBlockDeletion.java
 **/TestCloseContainerByPipeline.java
 **/TestContainerStateMachineFailures.java
+**/TestOzoneClientRetriesOnException.java
