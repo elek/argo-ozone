@@ -8,3 +8,4 @@
 **/TestCloseContainerByPipeline.java
 **/TestContainerStateMachineFailures.java
 **/TestOzoneClientRetriesOnException.java
+**/TestContainerReplicationEndToEnd.java
