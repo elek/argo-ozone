@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-SOURCE_TREE_REPO=${SOURCE_TREE_REPO:-https://github.com/apache/hadoop}
+SOURCE_TREE_REPO=${SOURCE_TREE_REPO:-https://github.com/apache/hadoop-ozone}
 BUILD_ARTIFACT_REPO=${BUILD_ARTIFACT_REPO:-https://github.com/elek/ozone-ci-q4}
 #Directory to store the output artifacts
 export LOG_DIR=${LOG_DIR:-/tmp/log}

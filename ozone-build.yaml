@@ -164,6 +164,8 @@ spec:
             value: "false"
           - name: BUILD_ARTIFACT_REPO
             value: "{{workflow.parameters.artifact-repo}}"
+          - name: SOURCE_TREE_REPO
+            value: https://github.com/apache/hadoop-ozone
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
@@ -213,6 +215,8 @@ spec:
             value: "{{workflow.parameters.update-github-status}}"
           - name: BUILD_ARTIFACT_REPO
             value: "{{workflow.parameters.artifact-repo}}"
+          - name: SOURCE_TREE_REPO
+            value: https://github.com/apache/hadoop-ozone
           - name: APPLY_PATCH
             value: https://gist.githubusercontent.com/elek/428f24861d213dc9aa63f286b2c071cd/raw/0171d9a64114f1aa12e5b238592c526d048be4b4/miniozone-exclude.patch
           - name: GITHUB_TOKEN
@@ -286,6 +290,8 @@ spec:
             value: "{{workflow.parameters.artifact-repo}}"
           - name: NOTIFY
             value: "{{workflow.parameters.notify}}"
+          - name: SOURCE_TREE_REPO
+            value: https://github.com/apache/hadoop-ozone
         volumeMounts:
           - name: git
             mountPath: /home/user/.gitconfig
