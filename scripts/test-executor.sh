@@ -53,7 +53,15 @@ if [ "$TEST_TYPE" == "acceptance" ]; then
    fi
 fi
 
-"$@" 2>&1 | tee $OUTPUT_DIR/output.log
+#Remove empty elements of the $@ (argo workaround)
+COMMAND=()
+for PART in "$@"; do
+   if [ "$PART" ]; then
+       COMMAND+=("$PART")
+   fi
+done
+
+"${COMMAND[@]}" 2>&1 | tee $OUTPUT_DIR/output.log
 
 RESULT=$?
 

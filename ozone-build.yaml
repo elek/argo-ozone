@@ -72,6 +72,8 @@ spec:
               parameters:
                 - name: identifier
                   value: integration
+                - name: arg1
+                  value: -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
               artifacts:
                 - name: source
                   from: "{{tasks.checkout.outputs.artifacts.source}}"
@@ -152,7 +154,7 @@ spec:
           - bash
           - -x
           - -c
-          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && rm -rf  /tmp/src/hadoop-tools /tmp/src/hadoop-yarn-project /tmp/src/hadoop-mapreduce-project /tmp/src/hadoop-submarine /tmp/src/hadoop-common-project/hadoop-common/dev-support
+          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && cd /tmp/src && ls -1 | egrep -v 'hadoop-ozone|hadoop-cblock|hadoop-hdds|hadoop-hdsl|pom.ozone.xml|README.txt' | xargs -n1 rm -rf
         env:
           - name: TEST_TYPE
             value: checkout
@@ -179,6 +181,8 @@ spec:
       inputs:
         parameters:
           - name: identifier
+          - name: arg1
+            default: ""
         artifacts:
           - name: source
             path: /workdir
@@ -197,6 +201,7 @@ spec:
         command: ["/tools/scripts/test-executor.sh"]
         args:
           - /workdir/hadoop-ozone/dev-support/checks/{{inputs.parameters.identifier}}.sh
+          - "{{inputs.parameters.arg1}}"
         env:
           - name: DOCKER_HOST
             value: tcp://0.0.0.0:2375
