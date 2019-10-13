@@ -10,7 +10,7 @@ spec:
       - name: org
         value: apache
       - name: repo
-        value: hadoop
+        value: hadoop-ozone
       - name: branch
         value: trunk
       - name: notify
@@ -154,7 +154,7 @@ spec:
           - bash
           - -x
           - -c
-          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && git -C  /tmp/src log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt && cd /tmp/src && ls -1 | egrep -v 'hadoop-ozone|hadoop-cblock|hadoop-hdds|hadoop-hdsl|pom.ozone.xml|README.txt' | xargs -n1 rm -rf
+          - git clone --depth=1 https://github.com/{{workflow.parameters.org}}/{{workflow.parameters.repo}}.git --branch {{workflow.parameters.branch}} /tmp/src && cd /tmp/src && git log -1 > $(dirname $OUTPUT_DIR)/HEAD.txt
         env:
           - name: TEST_TYPE
             value: checkout
@@ -213,8 +213,8 @@ spec:
             value: "{{workflow.parameters.update-github-status}}"
           - name: BUILD_ARTIFACT_REPO
             value: "{{workflow.parameters.artifact-repo}}"
-#          - name: APPLY_PATCH
-#            value: https://github.com/elek/hadoop/commit/e8b2cd7a87f8bf42ced0ab459870be5ba880ea17.patch?short_path=cbc3fc8#diff-cbc3fc862e413c87f6e53b751a43e33d
+          - name: APPLY_PATCH
+            value: https://gist.githubusercontent.com/elek/428f24861d213dc9aa63f286b2c071cd/raw/0171d9a64114f1aa12e5b238592c526d048be4b4/miniozone-exclude.patch
           - name: GITHUB_TOKEN
             valueFrom:
               secretKeyRef:
