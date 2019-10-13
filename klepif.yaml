@@ -1,6 +1,6 @@
 github:
   org: apache
-  repo: hadoop
+  repo: hadoop-ozone
 
 contributors:
   user:
@@ -40,7 +40,6 @@ contributors:
 
 source:
   githubpr:
-    label: ozone
 
 persistence:
   type: dir
@@ -50,7 +49,7 @@ actions:
   #  print:
   #    type: stdout
   build:
-    command: argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=true --generate-name=pr-{{.ref | tolower }}- /git/argo-ozone/ozone-build.yaml
+    command: echo argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=true --generate-name=pr-{{.ref | tolower }}- /git/argo-ozone/ozone-build.yaml
     dryrun: false
     label: ozone
   label:
