@@ -51,7 +51,6 @@ actions:
   build:
     command: argo submit -n argo -p org={{.org}} -p repo={{.repo}} -p branch={{.ref}} -p update-github-status=true --generate-name=pr-{{.ref | tolower }}- /git/argo-ozone/ozone-build.yaml
     dryrun: false
-    label: ozone
   label:
     type: label
 
