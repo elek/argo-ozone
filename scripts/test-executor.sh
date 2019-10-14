@@ -53,6 +53,11 @@ if [ "$TEST_TYPE" == "acceptance" ]; then
    fi
 fi
 
+#workaround for the early PR branch rebase
+if [ ! -f "README.txt" ]; then
+   echo "Will be restored" > README.txt
+fi
+
 #Remove empty elements of the $@ (argo workaround)
 COMMAND=()
 for PART in "$@"; do
