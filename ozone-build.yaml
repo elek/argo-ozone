@@ -20,7 +20,7 @@ spec:
       - name: argo-ozone-branch
         value: "master"
       - name: artifact-repo
-        value: https://github.com/elek/ozone-ci-q4
+        value: https://github.com/elek/ozone-ci-03
       - name: build-image
         value: elek/ozone-build:20191009-1-centos
       - name: selected-test #works only together with setting entrypoint to run-ona
