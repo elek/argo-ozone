@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: trunk-nightly
 spec:
-  schedule: "0 5 * * *"
+  schedule: "0 3 * * *"
   jobTemplate:
     spec:
       template:
