@@ -144,8 +144,6 @@ spec:
         artifacts:
           - name: source
             path: /tmp/src
-          - name: log
-            path: /tmp/log
       container:
         image: "{{workflow.parameters.build-image}}"
         imagePullPolicy: Always
@@ -193,10 +191,6 @@ spec:
             git:
               repo: "https://github.com/elek/argo-ozone.git"
               revision: "{{workflow.parameters.argo-ozone-branch}}"
-      outputs:
-        artifacts:
-          - name: log
-            path: /tmp/log
       container:
         image: "{{workflow.parameters.build-image}}"
         imagePullPolicy: Always
