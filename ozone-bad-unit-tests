@@ -10,3 +10,4 @@
 **/TestOzoneClientRetriesOnException.java
 **/TestContainerReplicationEndToEnd.java
 **/TestScmSafeMode.java
+**/TestMiniChaosOzoneCluster.java
