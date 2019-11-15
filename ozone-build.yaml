@@ -35,78 +35,78 @@ spec:
         tasks:
           - name: checkout
             template: checkout
-          - name: build
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: build
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: checkstyle
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: checkstyle
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: unit
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: unit
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: integration
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: integration
-                - name: arg1
-                  value: -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: author
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: author
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: findbugs
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: findbugs
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: rat
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: rat
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: build
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: build
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: checkstyle
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: checkstyle
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: unit
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: unit
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: integration
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: integration
+          #       - name: arg1
+          #         value: -Dsurefire.excludesFile=/tools/ozone-bad-unit-tests
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: author
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: author
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: findbugs
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: findbugs
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: rat
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: rat
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
           - name: acceptance
             dependencies: ["checkout"]
             template: execute-step
