@@ -107,16 +107,16 @@ spec:
           #     artifacts:
           #       - name: source
           #         from: "{{tasks.checkout.outputs.artifacts.source}}"
-          - name: acceptance
-            dependencies: ["checkout"]
-            template: execute-step
-            arguments:
-              parameters:
-                - name: identifier
-                  value: acceptance
-              artifacts:
-                - name: source
-                  from: "{{tasks.checkout.outputs.artifacts.source}}"
+          # - name: acceptance
+          #   dependencies: ["checkout"]
+          #   template: execute-step
+          #   arguments:
+          #     parameters:
+          #       - name: identifier
+          #         value: acceptance
+          #     artifacts:
+          #       - name: source
+          #         from: "{{tasks.checkout.outputs.artifacts.source}}"
     - name: run-one
       dag:
         tasks:
